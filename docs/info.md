@@ -36,3 +36,24 @@ making it compact and reliable for silicon implementation.
 Now send UART data:
 
 - Send two bytes:
+
+Examples:
+- `0x00 0x00` → PWM0 OFF
+- `0x01 0xFF` → PWM1 FULL ON
+- `0x02 0x80` → PWM2 ~50% duty
+
+5. Observe outputs on `uo_out[6:0]`
+
+**Expected output:**
+- Each PWM output produces a square wave
+- Duty cycle matches the value sent over UART
+- `uo_out[7]` (UART TX) sends `0xAA` after each received byte
+
+---
+
+## External hardware
+
+- USB-to-UART converter (for sending commands)
+- Oscilloscope or logic analyzer (to observe PWM outputs)
+
+No additional hardware is required for basic functionality.
