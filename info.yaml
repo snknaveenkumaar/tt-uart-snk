@@ -3,16 +3,18 @@ yaml_version: 6
 project:
   title: "PWM UART Controller"
   author: "NAVEEN KUMAAR S"
-  description: "UART-controlled 7-channel PWM generator for simple digital control applications."
+  description: "UART-controlled 7-channel PWM generator"
   language: "Verilog"
   clock_hz: 50000000
   tiles: "1x1"
+
   top_module: "tt_um_snk_pwm_uart"
+
   source_files:
-    - src/tt_um_snk_pwm_uart.v
-    - src/uart_rx.v
-    - src/uart_tx.v
-    - src/pwm_gen.v
+    - ../src/tt_um_snk_pwm_uart.v
+    - ../src/uart_rx.v
+    - ../src/uart_tx.v
+    - ../src/pwm_gen.v
 
 pinout:
   ui[0]: "UART RX"
@@ -45,4 +47,3 @@ pinout:
 tags:
   - uart
   - pwm
-  - verilog
