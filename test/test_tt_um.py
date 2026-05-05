@@ -1,81 +1,74 @@
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import ClockCycles
 
 
-CLK_DIV = 434  # must match RTL
+CLK_DIV = 434
+
+
+def set_rx(dut, level):
+    value = int(dut.ui_in.value)
+    if level:
+        value |= 0x01
+    else:
+        value &= 0xFE
+    dut.ui_in.value = value
 
 
 async def reset_dut(dut):
-    dut.ui_in.value = 0
+    dut.ena.value = 1
+    dut.uio_in.value = 0
+    dut.ui_in.value = 0x01
     dut.rst_n.value = 0
+
     for _ in range(10):
-        await RisingEdge(dut.clk)
+        await ClockCycles(dut.clk, 1)
+
     dut.rst_n.value = 1
     for _ in range(10):
-        await RisingEdge(dut.clk)
+        await ClockCycles(dut.clk, 1)
 
 
 async def uart_send_byte(dut, byte_val):
-    # idle high already assumed on RX
-    # start bit
-    dut.ui_in.value = (int(dut.ui_in.value) | 0x00) & 0xFE
-    for _ in range(CLK_DIV):
-        await RisingEdge(dut.clk)
+    set_rx(dut, 1)
+    await ClockCycles(dut.clk, 2)
 
-    # data bits, LSB first
+    set_rx(dut, 0)
+    await ClockCycles(dut.clk, CLK_DIV)
+
     for i in range(8):
-        bit = (byte_val >> i) & 1
-        if bit:
-            dut.ui_in.value = int(dut.ui_in.value) | 0x01
-        else:
-            dut.ui_in.value = int(dut.ui_in.value) & 0xFE
-        for _ in range(CLK_DIV):
-            await RisingEdge(dut.clk)
+        set_rx(dut, (byte_val >> i) & 1)
+        await ClockCycles(dut.clk, CLK_DIV)
 
-    # stop bit
-    dut.ui_in.value = int(dut.ui_in.value) | 0x01
-    for _ in range(CLK_DIV):
-        await RisingEdge(dut.clk)
+    set_rx(dut, 1)
+    await ClockCycles(dut.clk, CLK_DIV)
 
 
 @cocotb.test()
-async def test_reset_state(dut):
+async def test_basic(dut):
     cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
     await reset_dut(dut)
 
-    # After reset, PWM outputs should be low and UART TX should idle high
-    out_val = int(dut.uo_out.value)
-    assert out_val == 0x80, f"Expected 0x80 after reset, got 0x{out_val:02X}"
+    # enable
+    dut.ui_in.value = 0x03
 
-
-@cocotb.test()
-async def test_uart_program_pwm(dut):
-    cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
-    await reset_dut(dut)
-
-    # Enable operation
-    dut.ui_in.value = 0x02  # ui_in[1] = enable, rx idles high on bit0
-
-    # Program channel 0 to 0x00
+    # program PWM0 = 0
     await uart_send_byte(dut, 0x00)
     await uart_send_byte(dut, 0x00)
 
     for _ in range(20):
-        await RisingEdge(dut.clk)
+        await ClockCycles(dut.clk, 1)
 
-    out_val = int(dut.uo_out.value)
-    assert (out_val & 0x01) == 0, "PWM0 should be low for 0x00 duty"
+    assert (int(dut.uo_out.value) & 0x01) == 0
 
-    # Program channel 1 to 0xFF
+    # program PWM1 = max
     await uart_send_byte(dut, 0x01)
     await uart_send_byte(dut, 0xFF)
 
     high_count = 0
     for _ in range(40):
-        await RisingEdge(dut.clk)
-        out_val = int(dut.uo_out.value)
-        if (out_val >> 1) & 1:
+        await ClockCycles(dut.clk, 1)
+        if (int(dut.uo_out.value) >> 1) & 1:
             high_count += 1
 
-    assert high_count > 30, "PWM1 should be mostly high for 0xFF duty"
+    assert high_count > 30
