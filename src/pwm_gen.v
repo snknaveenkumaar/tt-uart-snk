@@ -1,15 +1,15 @@
 `default_nettype none
 
 module pwm_gen (
-    input wire clk,
-    input wire rst_n,
-    input wire [7:0] d0,
-    input wire [7:0] d1,
-    input wire [7:0] d2,
-    input wire [7:0] d3,
-    input wire [7:0] d4,
-    input wire [7:0] d5,
-    input wire [7:0] d6,
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [7:0] d0,
+    input  wire [7:0] d1,
+    input  wire [7:0] d2,
+    input  wire [7:0] d3,
+    input  wire [7:0] d4,
+    input  wire [7:0] d5,
+    input  wire [7:0] d6,
     output wire [6:0] pwm_out
 );
 
@@ -31,3 +31,5 @@ module pwm_gen (
     assign pwm_out[6] = (counter < d6);
 
 endmodule
+
+`default_nettype wire
