@@ -1,56 +1,84 @@
-# Tiny Tapeout project information
+# TinyTapeout Project Info — SKY26a shuttle
+# See https://tinytapeout.com/hdl/templates/ for field docs
+
 project:
-  title:        ""      # Project title
-  author:       ""      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  ""      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
+  title:      "IEEE SNK UART-Controlled PWM Generator"
+  author:     "S. Naveen Kumaar"
+  discord:    ""
+  description: >
+    An 8-channel software-configurable PWM generator driven by a UART serial
+    interface (115200 8N1). The host sends a 2-byte packet [channel | duty]
+    over RX; the chip replies with an ACK byte over TX. Eight independent
+    PWM outputs appear on uo_out. A programmable clock prescaler on ui_in[7:5]
+    sets the PWM base frequency. Designed for ~50% tile utilisation on SKY130.
 
-  # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
+  language: "SystemVerilog"
 
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  # Tile count — 1 × 1 is default for simple designs
+  tiles: "1x1"
 
-  # List your project's source files here.
-  # Source files must be in ./src and you must list each source file separately, one per line.
-  # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
+  # Clock source — use the TT standard 50 MHz clock
+  clock_hz: 50000000
+
+  # Pin usage documentation
+  # ui_in[4:0]  — prescaler[2:0] on [7:5], reserved [4:0]
+  # uo_out[7:0] — PWM ch7..ch0
+  # uio_in[0]   — UART RX (from host)
+  # uio_out[0]  — UART TX (to host)
+  # uio_oe[0]   — always output for TX
+
+  pinout:
+    ui_in:
+      7: "prescaler[2]"
+      6: "prescaler[1]"
+      5: "prescaler[0]"
+      4: "reserved"
+      3: "reserved"
+      2: "reserved"
+      1: "reserved"
+      0: "reserved"
+    uo_out:
+      7: "PWM channel 7"
+      6: "PWM channel 6"
+      5: "PWM channel 5"
+      4: "PWM channel 4"
+      3: "PWM channel 3"
+      2: "PWM channel 2"
+      1: "PWM channel 1"
+      0: "PWM channel 0"
+    uio_in:
+      7: "unused"
+      6: "unused"
+      5: "unused"
+      4: "unused"
+      3: "unused"
+      2: "unused"
+      1: "unused"
+      0: "UART RX"
+    uio_out:
+      7: "unused"
+      6: "unused"
+      5: "unused"
+      4: "unused"
+      3: "unused"
+      2: "unused"
+      1: "unused"
+      0: "UART TX"
+    uio_oe:
+      7: "0"
+      6: "0"
+      5: "0"
+      4: "0"
+      3: "0"
+      2: "0"
+      1: "0"
+      0: "1"
+
+  # Source files (order matters for elaboration)
   source_files:
-    - "project.v"
+    - uart_rx.sv
+    - uart_tx.sv
+    - pwm_gen.sv
+    - tt_um_snk_pwm_uart.sv
 
-# The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
-# This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
-pinout:
-  # Inputs
-  ui[0]: ""
-  ui[1]: ""
-  ui[2]: ""
-  ui[3]: ""
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: ""
-  ui[7]: ""
-
-  # Outputs
-  uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
-  uo[3]: ""
-  uo[4]: ""
-  uo[5]: ""
-  uo[6]: ""
-  uo[7]: ""
-
-  # Bidirectional pins
-  uio[0]: ""
-  uio[1]: ""
-  uio[2]: ""
-  uio[3]: ""
-  uio[4]: ""
-  uio[5]: ""
-  uio[6]: ""
-  uio[7]: ""
-
-# Do not change!
-yaml_version: 6
+  top_module: "tt_um_snk_pwm_uart"
