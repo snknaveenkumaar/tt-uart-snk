@@ -52,7 +52,7 @@ module tt_um_snk_pwm_uart (
     assign uio_out = 8'b0;
     assign uio_oe  = 8'b0;
 
-    wire _unused = &{ena, uio_in, ui_in[0], 1'b0};
+    wire _unused = &{ena, uio_in, ui_in[7:0], 1'b0};
 
 endmodule
 
