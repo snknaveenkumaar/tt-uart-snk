@@ -1,5 +1,5 @@
 SIM ?= icarus
-TOPLEVEL_LANG ?= verilog
+TOPLEVEL_LANG ?= verilog 
 
 TOPLEVEL = tt_um_snk_pwm_uart
 MODULE   = test_tt_um
